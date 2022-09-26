@@ -33,6 +33,36 @@ void normalizeTester() {
     cout << sum << endl;
 }
 
+int binarySearch(const vector<int>& array, int x) {
+    int low = 0;
+    int high = (int) array.size();
+    while (low <= high) {
+        int mid = (low + high) / 2;
+        if (array[mid] == x) return mid;
+        if (array[mid] < x) low = mid + 1;
+        else high = mid - 1;
+    }
+    return -1;
+}
+
+int binaryUpperSearch(const vector<int>& array, int x) {
+    int mid;
+    int low = 0;
+    int high = (int) array.size();
+
+    while (low < high) {
+        mid = (low + high) / 2;
+        if (x > array[mid]) low = mid + 1;
+        else high = mid;
+    }
+
+    if (low < array.size() && array[low] < x) low ++;
+    if (low >= array.size()) return INT_MAX;
+
+    return low;
+}
+
+
 int main(int argc, char **argv) {
 
     if (argc != 3) {
@@ -158,7 +188,21 @@ int main(int argc, char **argv) {
 
 
 
+/* binarySearch Playground
+    int target = 1025;
+    vector<int> arr = {-10,1,7,22,56,144,256,931,1024};
 
+    int res = binaryUpperSearch(arr, target);
+
+    auto it = arr.begin();
+
+    cout << "Inserting... " << target << " en " << res << " que tiene " << arr[res] << endl;
+    arr.insert(it + res, 999);
+    for (auto val : arr)
+        cout << val <<" | ";
+    it += res;
+    cout << endl << it[0];
+*/
 
 
 

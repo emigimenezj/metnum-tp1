@@ -116,8 +116,8 @@ TEST(Matrix_accessing, remove_the_nothing_do_anything) {
 
 TEST(Matrix_page_grade, page_grade_of_row_with_full_values) {
     LILMatrix matrix({{1,2},{3,4}});
-    EXPECT_EQ(matrix.getPageGrade(0), 3);
-    EXPECT_EQ(matrix.getPageGrade(1), 7);
+    EXPECT_EQ(matrix.getPageGrade(0), 2);
+    EXPECT_EQ(matrix.getPageGrade(1), 2);
     EXPECT_EQ(matrix.getRows(), 2);
     EXPECT_EQ(matrix.getCols(), 2);
     EXPECT_EQ(matrix.nzElems(), 4);
@@ -125,14 +125,14 @@ TEST(Matrix_page_grade, page_grade_of_row_with_full_values) {
 TEST(Matrix_page_grade, page_grade_of_row_with_some_values) {
     LILMatrix matrix({{1,0},{0,4}});
     EXPECT_EQ(matrix.getPageGrade(0), 1);
-    EXPECT_EQ(matrix.getPageGrade(1), 4);
+    EXPECT_EQ(matrix.getPageGrade(1), 1);
     EXPECT_EQ(matrix.getRows(), 2);
     EXPECT_EQ(matrix.getCols(), 2);
     EXPECT_EQ(matrix.nzElems(), 2);
 }
 TEST(Matrix_page_grade, page_grade_of_row_without_values) {
     LILMatrix matrix({{1,2},{0,0}});
-    EXPECT_EQ(matrix.getPageGrade(0), 3);
+    EXPECT_EQ(matrix.getPageGrade(0), 2);
     EXPECT_EQ(matrix.getPageGrade(1), 0);
     EXPECT_EQ(matrix.getRows(), 2);
     EXPECT_EQ(matrix.getCols(), 2);
@@ -271,7 +271,10 @@ TEST(Matrix_identity_substract, substract_null_matrix) {
     EXPECT_EQ(matrix.nzElems(), 2);
 }
 TEST(Matrix_gaus, gaus_with_already_triangulated_matrix) {
-    LILMatrix matrix({{1,0},{0,1}});
+    LILMatrix matrix({
+        {1,0},
+        {0,1}
+    });
     vector<double> b = {5, 9};
 
     matrix.gaussianElimination(b);
@@ -330,9 +333,9 @@ TEST(Matrix_gaus, gaus_complete_triangulation) {
     EXPECT_EQ(matrix.getCols(), 3);
     EXPECT_EQ(matrix.nzElems(), 6);
 
-    EXPECT_EQ(b[0], 5);
-    EXPECT_EQ(b[1], -6);
-    EXPECT_EQ(b[2], 6);
+    EXPECT_EQ(b[0], 0);
+    EXPECT_EQ(b[1], 5.5);
+    EXPECT_EQ(b[2], -2);
 }
 TEST(Matrix_gaus, gaus_with_matrix_with_linearly_dependent_rows) {
     LILMatrix matrix({
@@ -357,11 +360,14 @@ TEST(Matrix_gaus, gaus_with_matrix_with_linearly_dependent_rows) {
     EXPECT_EQ(matrix.getCols(), 3);
     EXPECT_EQ(matrix.nzElems(), 5);
 
+/*
+    // NO EXISTE SOLUCIÓN
     EXPECT_EQ(b[0], 5);
     EXPECT_EQ(b[1], -6);
-    EXPECT_EQ(b[2], 6);
+    EXPECT_EQ(b[2], 19/2);
+    */
 }
-/*
+
 TEST(Matrix_gaus, gaus_with_4x4_matrix) {
     LILMatrix matrix({
          {1,2,3,4},
@@ -369,7 +375,10 @@ TEST(Matrix_gaus, gaus_with_4x4_matrix) {
          {4,3,1,2},
          {3,2,1,4}
     });
-    matrix.gaussianElimination();
+
+    vector<double> b = {1,1,1,1};
+
+    matrix.gaussianElimination(b);
     EXPECT_EQ(matrix.getValue(0,0), 1);
     EXPECT_EQ(matrix.getValue(0,1), 2);
     EXPECT_EQ(matrix.getValue(0,2), 3);
@@ -391,7 +400,7 @@ TEST(Matrix_gaus, gaus_with_4x4_matrix) {
     EXPECT_EQ(matrix.getCols(), 4);
     EXPECT_EQ(matrix.nzElems(), 10);
 }
-*/
+
 /*
 TEST(Matrix_gaus, gaus_with_4x4_matrix) {
     LILMatrix matrix({

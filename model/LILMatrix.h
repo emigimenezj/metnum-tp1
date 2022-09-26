@@ -49,7 +49,7 @@ public:
     // Extra
     void debug_print();
 
-    void debug_ec_system();
+    void debug_ec_system(const vector<double>& b);
     void debug_abstract_matrix();
     void debug_structural_matrix();
 };

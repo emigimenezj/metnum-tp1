@@ -9,6 +9,9 @@
 using namespace std;
 using namespace std::chrono;
 
+#define epsilon 0.0001
+
+
 
 void normalizeVector(vector<double> &vector) {
     double sum = 0;
@@ -101,7 +104,17 @@ int main(int argc, char **argv) {
     vector<double> D(pages);
     for (int i = 0; i < pages; i++) {
        double pageGrade = W.getPageGrade(i);
-       D[i] = pageGrade == 0 ? 0 : pageGrade;
+       cout << pageGrade << endl;
+       if (pageGrade == 0) {
+           D[i] = 0;
+           //cout << D[i] << endl;
+           continue;
+       }
+       double newValue = 1/pageGrade;
+       D[i] = abs(newValue) >= epsilon ? newValue : 0;
+
+       //D[i] = abs(pageGrade) > epsilon ? 1/pageGrade : 0; // epsilon, y 1/page grade y pagegrande esta mal?
+       //cout << D[i] << endl;
     }
 
     cout << "Matriz D definida." << endl << endl;
@@ -118,6 +131,7 @@ int main(int argc, char **argv) {
 
     // PAGE RANK
     W.multiplicationByScalar(p);
+
     W.multiplicationByDiagonalMatrix(D);
     W.identitySubtractSelf();
     W.gaussianElimination(e);

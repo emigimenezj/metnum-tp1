@@ -73,6 +73,15 @@ int main(int argc, char **argv) {
        return 1;
     }
 
+/*
+    for (int i = 0; i < 2000; i++) {
+        cout << i << " ";
+        for (int j = 0; j < 2000; j++) {
+            i+j;
+            make_pair(i,j);
+        }
+    }*/
+
 
 
     // TIME START

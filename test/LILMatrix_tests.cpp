@@ -401,17 +401,19 @@ TEST(Matrix_gaus, gaus_with_4x4_matrix) {
     EXPECT_EQ(matrix.nzElems(), 10);
 }
 
-/*
-TEST(Matrix_gaus, gaus_with_4x4_matrix) {
+TEST(Matrix_gaus, gaus_with_4x4_matrix_v2) {
     LILMatrix matrix({
-         {1,0,0,0},
+         {1,1,0,0},
          {0,1,0,0},
          {0,1,1,0},
          {2,0,1,1}
     });
-    matrix.gaussianElimination();
+
+    vector<double> b = {1,1,1,1};
+
+    matrix.gaussianElimination(b);
     EXPECT_EQ(matrix.getValue(0,0), 1);
-    EXPECT_EQ(matrix.getValue(0,1), 0);
+    EXPECT_EQ(matrix.getValue(0,1), 1);
     EXPECT_EQ(matrix.getValue(0,2), 0);
     EXPECT_EQ(matrix.getValue(0,3), 0);
     EXPECT_EQ(matrix.getValue(1,0), 0);
@@ -429,6 +431,5 @@ TEST(Matrix_gaus, gaus_with_4x4_matrix) {
 
     EXPECT_EQ(matrix.getRows(), 4);
     EXPECT_EQ(matrix.getCols(), 4);
-    EXPECT_EQ(matrix.nzElems(), 4);
+    EXPECT_EQ(matrix.nzElems(), 5);
 }
-*/

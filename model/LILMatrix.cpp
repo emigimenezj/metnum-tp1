@@ -118,7 +118,7 @@ void LILMatrix::setValue(int targetRow, int targetColumn, double targetValue) {
     assert(targetColumn >= 0 && targetColumn <= cols - 1);
 
     if (matrix.empty()) {
-        if(targetValue == 0) return;
+        if (targetValue == 0) return;
         matrix.push_back(row_t(targetRow, row_elements_t(0)));
         auto &row_elem = matrix.back();
         row_elem.second.emplace_back(targetColumn, targetValue);
@@ -134,7 +134,7 @@ void LILMatrix::setValue(int targetRow, int targetColumn, double targetValue) {
     double actualValue = getValue(targetRow, targetColumn);
 
     if (targetValue == 0) {
-        if(actualValue == 0) return;
+        if (actualValue == 0) return;
 
         auto m_it = findRow(targetRow);
         auto row_it = findColumn(targetColumn, &m_it->second);
@@ -148,7 +148,7 @@ void LILMatrix::setValue(int targetRow, int targetColumn, double targetValue) {
 
     if (actualValue == 0) {
         auto m_it = findRow(targetRow);
-        if(m_it->first != targetRow) matrix.insert(m_it, newMatrix_elem);
+        if (m_it->first != targetRow) matrix.insert(m_it, newMatrix_elem);
         else m_it->second.insert(findColumn(targetColumn, &m_it->second), newElement);
 
         //nz_elems = countNzElems();
@@ -249,11 +249,23 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
     cout << "TRIANGULANDO: ";
     for (int di = 0; di < matrix.size(); di++) {
         //cout << di << " ";
-        cout << "------------------------- Triangulando columna " << di << " -------------------------" << endl;
+        //cout << "------------------------- Triangulando columna " << di << " -------------------------" << endl;
         //cout << endl << "Diag:" << di << endl;
 
 
-        cout << endl;
+
+        /*
+        for (int h = di; h < matrix.size(); h++) {
+            int k = 0;
+            if (matrix[h].second[k].first < di) cout << "[" << matrix[h].first << "]   ";
+            while(matrix[h].second[k].first < di) {
+                cout << matrix[h].second[k].first << "|" << matrix[h].second[k].second << "   ";
+                k++;
+            }
+            if (k != 0) cout << endl;
+        }
+        */
+
 
         for (int ri = di + 1; ri < matrix.size(); ri++) {
 
@@ -306,7 +318,7 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
 
                 if (de.first == re.first) {
 
-                    if (abs(newValue) < epsilon) {
+                    if (abs(newValue) < epsilon) { // agregamos || dei == 0
                         matrix[ri].second.erase(matrix[ri].second.begin()+rei);
 
                         //cout << "[D:" << di << "|" << dei << "|"  << de.first << "|" << de.second << "]   ";        // di dei de dv
@@ -332,7 +344,7 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
                             dei++;
                             continue;
                         }
-                        value_t newElement = make_pair(de.first, newValue);
+                        value_t newElement = make_pair(matrix[di].second[dei].first, newValue);
                         matrix[ri].second.push_back(newElement);
 
                         nz_elems++;
@@ -343,40 +355,30 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
                 dei--;
             }
             //cout << endl;
+            /*
             double tmp = b[ri] - factor * b[di];
             if (abs(tmp) < epsilon) b[ri] = 0;
             else b[ri] = tmp;
+            */
+            b[ri] -= factor * b[di];
         }
-
     }
-
 
     /*
     for (const auto& fila : matrix)
         if (fila.second.size() >= 400) cout << fila.first << "|" << fila.second.size() << endl;
     */
 
-
     //debug_structural_matrix();
     //debug_abstract_matrix();
     //debug_ec_system(b);
 
     for (int eci = (int) matrix.size() - 1; eci >= 0; eci--) {
-
         double sum = 0;
-        for (int ti = 1; ti < matrix[eci].second.size(); ti++) {
+        for (int ti = 1; ti < matrix[eci].second.size(); ti++)
+            sum += matrix[eci].second[ti].second * b[eci+ti];
 
-            double tmp = matrix[eci].second[ti].second * b[eci+ti];
-            if (abs(tmp) < epsilon) continue;
-            sum += tmp;
-        }
-
-        double tmp = (b[eci] - sum) / matrix[eci].second[0].second;
-        if (abs(tmp) < epsilon) {
-            b[eci] = 0;
-        } else {
-            b[eci] = tmp;
-        }
+        b[eci] =  (b[eci] - sum) / matrix[eci].second[0].second;
     }
 }
 

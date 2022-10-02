@@ -113,10 +113,9 @@ int main(int argc, char **argv) {
     vector<double> D(pages);
     for (int i = 0; i < pages; i++) {
        double pageGrade = W.getPageGrade(i);
-       cout << pageGrade << endl;
+
        if (pageGrade == 0) {
            D[i] = 0;
-           //cout << D[i] << endl;
            continue;
        }
        double newValue = 1/pageGrade;

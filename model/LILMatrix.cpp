@@ -2,7 +2,7 @@
 #include <fstream>
 #include <cassert>
 
-#define epsilon 0.0001
+#define epsilon 0.0000000000000001
 
 
 /* CONSTRUCTORS */
@@ -190,7 +190,7 @@ double LILMatrix::getPageGrade(int targetColumn) {
     /*
     auto m_it = findRow(targetRow);
     if (m_it == matrix.end() || targetRow != m_it->first) return 0;
-    return (double) m_it->second.size();
+    return (double) m_it->second.size();*/
 
     /*
     double res = 0;
@@ -208,7 +208,7 @@ void LILMatrix::multiplicationByScalar(double scalar) {
     }
     for (auto &i: matrix)
         for (auto &j: i.second)
-            j.second = j.second * scalar;
+            j.second *= scalar;
     //cout << "multiplication by scalar" << endl;
     //debug_abstract_matrix();
     //debug_structural_matrix();
@@ -216,25 +216,19 @@ void LILMatrix::multiplicationByScalar(double scalar) {
 
 void LILMatrix::multiplicationByDiagonalMatrix(vector<double> triangularMatrix) {
     for (auto &i : matrix)
-        for (auto &j : i.second)
-            setValue(i.first, j.first, triangularMatrix[j.first] * getValue(i.first, j.first));
+        for (auto &j : i.second) {
+            double newValue = j.second * triangularMatrix[j.first];
+            setValue(i.first, j.first, abs(newValue) >= epsilon ? newValue : 0);
+        }
     //cout << "mult. by diagonal" << endl;
     //debug_abstract_matrix();
     //debug_structural_matrix();
 }
 
 void LILMatrix::identitySubtractSelf() {
-    for (auto &i: matrix) {
-        for (auto &j: i.second) {
-            int row = i.first;
-            int col = j.first;
-            if (row == col) continue;
-            setValue(row, col, (-1) * getValue(row, col));
-        }
-    }
-    for (int k = 0; k < rows; k++) // TODO verificar si se puede meter en el ciclo anterior
-        //setValue(k,k,1); // considering always zero values in the self diagonal //TODO a ver si esta optimización rompe
-        setValue(k, k, 1 - getValue(k, k)); // considering nonzero values in the self diagonal}
+    multiplicationByScalar(-1);
+    for (int di = 0; di < rows; di++)
+        setValue(di, di, 1);
 }
 
 
@@ -242,56 +236,57 @@ void LILMatrix::identitySubtractSelf() {
 
 
 void LILMatrix::gaussianElimination(vector<double> &b) {
-    //cout << "gauss" << endl;
-    //debug_abstract_matrix();
-    //debug_structural_matrix();
 
     cout << "TRIANGULANDO: ";
+/*
     for (int di = 0; di < matrix.size(); di++) {
-        //cout << di << " ";
-        //cout << "------------------------- Triangulando columna " << di << " -------------------------" << endl;
-        //cout << endl << "Diag:" << di << endl;
+        for (int ri = di+1; ri < matrix.size(); ri++) {
+            if (matrix[ri].second[0].first != di) continue;
 
+            auto actualDiag = matrix[di].second;
+            auto actualRow = matrix[ri].second;
+            auto actualRowIndex = matrix[ri].first;
 
+            double factor = actualRow[0].second / actualDiag[0].second;
 
-        /*
-        for (int h = di; h < matrix.size(); h++) {
-            int k = 0;
-            if (matrix[h].second[k].first < di) cout << "[" << matrix[h].first << "]   ";
-            while(matrix[h].second[k].first < di) {
-                cout << matrix[h].second[k].first << "|" << matrix[h].second[k].second << "   ";
-                k++;
+            int actualRowElementIndex = 0;
+            for (auto& diagElem : actualDiag) {
+                auto rowElem = matrix[ri].second[actualRowElementIndex];
+
+                if (diagElem.first < rowElem.first) {
+                    auto tmp = - factor*diagElem.second;
+                    auto newValue = abs(tmp) < epsilon ? 0 : tmp;
+                    setValue(actualRowIndex,diagElem.first, newValue);
+                    actualRowElementIndex++;
+                } else if (diagElem.first == rowElem.first) {
+                    auto tmp = rowElem.second - factor * diagElem.second;
+                    auto newValue = abs(tmp) < epsilon ? 0 : tmp;
+                    setValue(actualRowIndex,diagElem.first,newValue);
+                } else {
+                    actualRowElementIndex++;
+                    if (actualRowElementIndex >= actualRow.size()) {
+                        auto tmp = - factor*diagElem.second;
+                        auto newValue = abs(tmp) < epsilon ? 0 : tmp;
+                        setValue(actualRowIndex, diagElem.first, newValue);
+                    }
+                }
             }
-            if (k != 0) cout << endl;
         }
-        */
+    }
+*/
 
 
+
+    for (int di = 0; di < matrix.size(); di++) {
+        cout << di << " ";
         for (int ri = di + 1; ri < matrix.size(); ri++) {
-
-            if (matrix[ri].second[0].first != di) continue; // performance: mid
+            if (matrix[ri].second[0].first != di) continue;
 
             double dv = matrix[di].second[0].second;
             double rv = matrix[ri].second[0].second;
-
-//            double dv = getValue(di, di); // performance: low
-
-//            double rv = getValue(ri, di); // performance: low
-//            if (rv == 0) continue;        //
-
-//            double rv = getValue(ri, di); // performance: very low
-
             double factor = rv / dv;
 
             int rei = 0;
-            //int rl = (int) matrix[ri].second.size(); (512, 1498) (1500, 1279) rl=9 -> rl=10
-            //if (ri == 1999) cout << di << "|" << rl;
-            //cout << "[" << ri << "|" << rl << "] ";
-            //int dl = (int) matrix[di].second.size();
-
-            //cout << "Factor: " << factor << endl;
-            //cout << "DL: " << dl << "     RL: " << rl << endl;
-
             for (int dei = 0; dei < matrix[di].second.size(); dei++) {
 
                 auto de = matrix[di].second[dei];
@@ -303,13 +298,12 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
 
                 if (de.first < re.first) {
                     newValue = - factor * dv;
-                    if (abs(newValue) < epsilon) continue;
+                    if (abs(newValue) <= epsilon) continue;
 
+                    //cout << di << "," << ri << "," << dei << "," << rei << "|" << re.first << endl;
+                    //setValue(matrix[ri].first, re.first, newValue);
                     value_t newElement = make_pair(de.first, newValue);
                     matrix[ri].second.insert(matrix[ri].second.begin() + rei, newElement);
-
-                    //cout << "[D:" << di << "|" << dei << "|"  << de.first << "|" << de.second << "]   ";        // di dei de dv
-                    //cout << "[R:" << ri << "|" << rei << "|"  << de.first << "|" << 0 << "... " << - factor * dv << "]" << endl;   // ri rei re rv
 
                     rei++;
                     nz_elems++;
@@ -318,48 +312,42 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
 
                 if (de.first == re.first) {
 
-                    if (abs(newValue) < epsilon) { // agregamos || dei == 0
+                    if (abs(newValue) <= epsilon) { // agregamos || dei == 0
                         matrix[ri].second.erase(matrix[ri].second.begin()+rei);
-
-                        //cout << "[D:" << di << "|" << dei << "|"  << de.first << "|" << de.second << "]   ";        // di dei de dv
-                        //cout << "[R:" << ri << "|" << rei << "|"  << re.first << "|" << re.second << "... erasing]" << endl;   // ri rei re rv
 
                         nz_elems--;
                         continue;
                     }
 
                     matrix[ri].second[rei].second = newValue;
-                    //cout << "[D:" << di << "|" << dei << "|"  << de.first << "|" << de.second << "]   ";        // di dei de dv
-                    //cout << "[R:" << ri << "|" << rei << "|"  << re.first << "|" << re.second << "... " << newValue << "]" << endl;   // ri rei re rv
-
                     continue;
                 }
 
                 //while (rei < matrix[ri].second.size() && re.first < de.first) rei++;
                 rei++;
-                if (rei >= matrix[ri].second.size()) { // rei = 9 ==
+                if (rei >= matrix[ri].second.size()) {
                     while (dei < matrix[di].second.size()) {
                         newValue = - factor * dv;
-                        if (abs(newValue) < epsilon) {
+                        if (abs(newValue) <= epsilon) {
                             dei++;
-                            continue;
-                        }
-                        value_t newElement = make_pair(matrix[di].second[dei].first, newValue);
-                        matrix[ri].second.push_back(newElement);
+                        } else {
+                            value_t newElement = make_pair(matrix[di].second[dei].first, newValue);
+                            matrix[ri].second.push_back(newElement);
 
-                        nz_elems++;
-                        dei++;
+                            nz_elems++;
+                            dei++;
+                        }
                     }
                     break;
                 }
                 dei--;
             }
             //cout << endl;
-            /*
-            double tmp = b[ri] - factor * b[di];
-            if (abs(tmp) < epsilon) b[ri] = 0;
-            else b[ri] = tmp;
-            */
+
+//            double tmp = b[ri] - factor * b[di];
+//            if (abs(tmp) < epsilon) b[ri] = 0;
+//            else b[ri] = tmp;
+
             b[ri] -= factor * b[di];
         }
     }
@@ -369,14 +357,29 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
         if (fila.second.size() >= 400) cout << fila.first << "|" << fila.second.size() << endl;
     */
 
+    /*
+    matrix[500].second[0].first = 2;
+    for (auto & i : matrix)
+        if (i.first != i.second[0].first)
+            cout << "[" << i.first << " " << i.second[0].first << "]" << endl;
+    */
+
     //debug_structural_matrix();
     //debug_abstract_matrix();
     //debug_ec_system(b);
 
+    /*cout << endl;
+    for (int i = 1997; i < matrix.size(); i++) {
+        for (int j = 0; j < matrix[i].second.size(); j++) {
+            cout << "[" << i << "]" << matrix[i].second[j].first << " ";
+        }
+        cout << b[i] << endl;
+    }*/
+
     for (int eci = (int) matrix.size() - 1; eci >= 0; eci--) {
         double sum = 0;
         for (int ti = 1; ti < matrix[eci].second.size(); ti++)
-            sum += matrix[eci].second[ti].second * b[eci+ti];
+            sum += matrix[eci].second[ti].second * b[matrix[eci].second[ti].first];
 
         b[eci] =  (b[eci] - sum) / matrix[eci].second[0].second;
     }
@@ -388,7 +391,7 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
 
 void LILMatrix::debug_structural_matrix() {
     cout << "----- STRUCTURAL MATRIX" << endl;
-    for (auto i : matrix) {
+    for (auto const& i : matrix) {
         for (auto j : i.second) {
             cout << "[" << i.first + 1 << "," << j.first + 1 << ": " << j.second << "]   ";
         }

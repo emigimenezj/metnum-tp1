@@ -11,8 +11,6 @@ using namespace std::chrono;
 
 #define epsilon 0.0001
 
-
-
 void normalizeVector(vector<double> &vector) {
     double sum = 0;
     for (double i : vector)
@@ -140,7 +138,9 @@ int main(int argc, char **argv) {
     // PAGE RANK
     W.multiplicationByScalar(p);
 
+
     W.multiplicationByDiagonalMatrix(D);
+
     W.identitySubtractSelf();
     W.gaussianElimination(e);
     normalizeVector(e);

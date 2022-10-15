@@ -132,8 +132,8 @@ TEST(Matrix_page_grade, page_grade_of_row_with_some_values) {
 }
 TEST(Matrix_page_grade, page_grade_of_row_without_values) {
     LILMatrix matrix({{1,2},{0,0}});
-    EXPECT_EQ(matrix.getPageGrade(0), 2);
-    EXPECT_EQ(matrix.getPageGrade(1), 0);
+    EXPECT_EQ(matrix.getPageGrade(0), 1);
+    EXPECT_EQ(matrix.getPageGrade(1), 1);
     EXPECT_EQ(matrix.getRows(), 2);
     EXPECT_EQ(matrix.getCols(), 2);
     EXPECT_EQ(matrix.nzElems(), 2);

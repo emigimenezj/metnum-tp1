@@ -18,7 +18,7 @@ void normalizeVector(vector<double> &vector) {
     for (double& i : vector)
         i = i / sum;
 }
-
+/*
 void normalizeTester() {
     double numerador = -25;
     double denominador = 89;
@@ -32,8 +32,8 @@ void normalizeTester() {
     for (double& i : arr)
         sum += i;
     cout << sum << endl;
-}
-
+}*/
+/*
 int binarySearch(const vector<int>& array, int x) {
     int low = 0;
     int high = (int) array.size();
@@ -61,7 +61,7 @@ int binaryUpperSearch(const vector<int>& array, int x) {
     if (low >= array.size()) return INT_MAX;
 
     return low;
-}
+}*/
 
 
 int main(int argc, char **argv) {

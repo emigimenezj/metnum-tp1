@@ -23,7 +23,6 @@ private:
     int nz_elems; // the number of nonzero elements
     matrix_t::iterator findRow(int target);
     row_elements_t::iterator findColumn(int target, row_elements_t* row);
-    int countNzElems();
 
 public:
     // Constructors
@@ -38,7 +37,6 @@ public:
     double getValue(int targetRow, int targetColumn);
     void setValue(int row, int column, double targetValue);
 
-
     // Actions
     double getPageGrade(int page);
     void multiplicationByScalar(double scalar);
@@ -47,8 +45,6 @@ public:
     void gaussianElimination(vector<double> &b);
 
     // Extra
-    void debug_print();
-
     void debug_ec_system(const vector<double>& b);
     void debug_abstract_matrix();
     void debug_structural_matrix();

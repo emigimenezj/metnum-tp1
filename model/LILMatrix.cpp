@@ -2,11 +2,10 @@
 #include <fstream>
 #include <cassert>
 
-#define epsilon 0.0000000000000001
+#define epsilon 0.0001
 
 
 /* CONSTRUCTORS */
-
 LILMatrix::LILMatrix(int rows, int columns) : rows(rows), cols(columns), nz_elems(0) {}
 
 LILMatrix::LILMatrix(int pages, int links, ifstream &file) {
@@ -18,11 +17,6 @@ LILMatrix::LILMatrix(int pages, int links, ifstream &file) {
         file >> srcPage >> dstPage;
         setValue(dstPage-1, srcPage-1, 1);
     }
-    /*
-    cout << "INIT" << endl;
-    debug_abstract_matrix();
-    debug_structural_matrix();
-     */
 }
 
 LILMatrix::LILMatrix(const vector<vector<double>> &vectorMatrix) {
@@ -40,77 +34,15 @@ LILMatrix::LILMatrix(const vector<vector<double>> &vectorMatrix) {
 
 
 /* ACCESSING */
-
 matrix_t::iterator LILMatrix::findRow(int target) {
-
     auto m_it = matrix.begin();
     while(m_it != matrix.end() && m_it->first < target) m_it++;
     return m_it;
-
-    /*
-    int mid;
-    int low = 0;
-    int high = (int) matrix.size();
-
-    while (low < high) {
-        mid = (low + high) / 2;
-        if (target > matrix[mid].first) low = mid + 1;
-        else high = mid;
-    }
-
-    if (low < matrix.size() && matrix[low].first < target) low ++;
-
-    return low;
-    */
 }
 row_elements_t::iterator LILMatrix::findColumn(int target, row_elements_t* row) {
-
     auto row_it = (*row).begin();
-    while(row_it != (*row).end() && row_it->first < target) row_it++;
+    while (row_it != (*row).end() && row_it->first < target) row_it++;
     return row_it;
-
-
-/*
-    int mid;
-    int low = 0;
-    int high = (int) row.size();
-
-    while (low < high) {
-        mid = (low + high) / 2;
-        if (target > row[mid].first) low = mid + 1;
-        else high = mid;
-    }
-
-    if (low < row.size() && row[low].first < target) low ++;
-
-    return low;
-*/
-
-    /*
-    int mid;
-    int low = 0;
-    int high = (int) row.size();
-    while (low <= high) {
-        mid = (low + high) / 2;
-        if (row[mid].first == target) return mid;
-        if (row[mid].first < target) low = mid + 1;
-        else high = mid - 1;
-    }
-    return -1;
-    */
-
-}
-// TODO la idea es sacar esta función en la entrega final porque empeora la performance
-// Esto es solo para poder correr los test y verificar que no hay vectores con elementos de más
-// Si el nz_elems se maneja con incrementos (++) y decrementos (--),
-// no se sabe realmente cuántos elementos no nulos hay en la matriz
-// Por lo tanto esta función los cuenta y reasigna el valor que nz_elems debería tener realmente.
-int LILMatrix::countNzElems() {
-    int ggwp = 0;
-    for (auto& i : matrix)
-        for (auto& j : i.second)
-            ggwp++;
-    return ggwp;
 }
 
 void LILMatrix::setValue(int targetRow, int targetColumn, double targetValue) {
@@ -122,14 +54,14 @@ void LILMatrix::setValue(int targetRow, int targetColumn, double targetValue) {
         matrix.push_back(row_t(targetRow, row_elements_t(0)));
         auto &row_elem = matrix.back();
         row_elem.second.emplace_back(targetColumn, targetValue);
-        //nz_elems = countNzElems();
+
         nz_elems++;
         return;
     }
 
-    value_t newElement = make_pair(targetColumn, targetValue); // elemento
+    value_t newElement = make_pair(targetColumn, targetValue); // new row element: pair<col, value>
     row_elements_t newRow_elem{newElement};
-    row_t newMatrix_elem = make_pair(targetRow, newRow_elem); // fila
+    row_t newMatrix_elem = make_pair(targetRow, newRow_elem); // new row: pair<row, elements>
 
     double actualValue = getValue(targetRow, targetColumn);
 
@@ -141,20 +73,21 @@ void LILMatrix::setValue(int targetRow, int targetColumn, double targetValue) {
 
         m_it->second.erase(row_it);
 
-        //nz_elems = countNzElems();
         nz_elems--;
         return;
     }
 
     if (actualValue == 0) {
         auto m_it = findRow(targetRow);
-        if (m_it->first != targetRow) matrix.insert(m_it, newMatrix_elem);
-        else m_it->second.insert(findColumn(targetColumn, &m_it->second), newElement);
 
-        //nz_elems = countNzElems();
+        if (m_it->first != targetRow)
+            matrix.insert(m_it, newMatrix_elem);
+        else
+            m_it->second.insert(findColumn(targetColumn, &m_it->second), newElement);
+
         nz_elems++;
     } else {
-        for(auto & i : matrix) { // sujeto a ver optimización
+        for(auto & i : matrix) {
             if(i.first != targetRow) continue;
             for(auto & j : i.second) {
                 if(j.first != targetColumn) continue;
@@ -187,18 +120,6 @@ double LILMatrix::getPageGrade(int targetColumn) {
             if (j.first == targetColumn) res += 1;
 
     return res;
-    /*
-    auto m_it = findRow(targetRow);
-    if (m_it == matrix.end() || targetRow != m_it->first) return 0;
-    return (double) m_it->second.size();*/
-
-    /*
-    double res = 0;
-    for (int i = 0; i < cols; i++) res += getValue(targetRow, i);
-    return res;
-    */
-
-
 }
 
 void LILMatrix::multiplicationByScalar(double scalar) {
@@ -209,9 +130,6 @@ void LILMatrix::multiplicationByScalar(double scalar) {
     for (auto &i: matrix)
         for (auto &j: i.second)
             j.second *= scalar;
-    //cout << "multiplication by scalar" << endl;
-    //debug_abstract_matrix();
-    //debug_structural_matrix();
 }
 
 void LILMatrix::multiplicationByDiagonalMatrix(vector<double> triangularMatrix) {
@@ -220,9 +138,6 @@ void LILMatrix::multiplicationByDiagonalMatrix(vector<double> triangularMatrix) 
             double newValue = j.second * triangularMatrix[j.first];
             setValue(i.first, j.first, abs(newValue) >= epsilon ? newValue : 0);
         }
-    //cout << "mult. by diagonal" << endl;
-    //debug_abstract_matrix();
-    //debug_structural_matrix();
 }
 
 void LILMatrix::identitySubtractSelf() {
@@ -236,49 +151,7 @@ void LILMatrix::identitySubtractSelf() {
 
 
 void LILMatrix::gaussianElimination(vector<double> &b) {
-
-    cout << "TRIANGULANDO: ";
-/*
     for (int di = 0; di < matrix.size(); di++) {
-        for (int ri = di+1; ri < matrix.size(); ri++) {
-            if (matrix[ri].second[0].first != di) continue;
-
-            auto actualDiag = matrix[di].second;
-            auto actualRow = matrix[ri].second;
-            auto actualRowIndex = matrix[ri].first;
-
-            double factor = actualRow[0].second / actualDiag[0].second;
-
-            int actualRowElementIndex = 0;
-            for (auto& diagElem : actualDiag) {
-                auto rowElem = matrix[ri].second[actualRowElementIndex];
-
-                if (diagElem.first < rowElem.first) {
-                    auto tmp = - factor*diagElem.second;
-                    auto newValue = abs(tmp) < epsilon ? 0 : tmp;
-                    setValue(actualRowIndex,diagElem.first, newValue);
-                    actualRowElementIndex++;
-                } else if (diagElem.first == rowElem.first) {
-                    auto tmp = rowElem.second - factor * diagElem.second;
-                    auto newValue = abs(tmp) < epsilon ? 0 : tmp;
-                    setValue(actualRowIndex,diagElem.first,newValue);
-                } else {
-                    actualRowElementIndex++;
-                    if (actualRowElementIndex >= actualRow.size()) {
-                        auto tmp = - factor*diagElem.second;
-                        auto newValue = abs(tmp) < epsilon ? 0 : tmp;
-                        setValue(actualRowIndex, diagElem.first, newValue);
-                    }
-                }
-            }
-        }
-    }
-*/
-
-
-
-    for (int di = 0; di < matrix.size(); di++) {
-        cout << di << " ";
         for (int ri = di + 1; ri < matrix.size(); ri++) {
             if (matrix[ri].second[0].first != di) continue;
 
@@ -296,12 +169,10 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
 
                 double newValue = rv - factor * dv;
 
-                if (de.first < re.first) {
+                if (de.first < re.first) { // Caso 1
                     newValue = - factor * dv;
                     if (abs(newValue) <= epsilon) continue;
 
-                    //cout << di << "," << ri << "," << dei << "," << rei << "|" << re.first << endl;
-                    //setValue(matrix[ri].first, re.first, newValue);
                     value_t newElement = make_pair(de.first, newValue);
                     matrix[ri].second.insert(matrix[ri].second.begin() + rei, newElement);
 
@@ -310,22 +181,23 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
                     continue;
                 }
 
-                if (de.first == re.first) {
+                if (de.first == re.first) { // Caso 2
 
-                    if (abs(newValue) <= epsilon) { // agregamos || dei == 0
+                    if (abs(newValue) <= epsilon) { // Caso 2.1
                         matrix[ri].second.erase(matrix[ri].second.begin()+rei);
 
                         nz_elems--;
                         continue;
                     }
 
+                    // Caso 2.2
                     matrix[ri].second[rei].second = newValue;
                     continue;
                 }
 
-                //while (rei < matrix[ri].second.size() && re.first < de.first) rei++;
+                // Caso 3
                 rei++;
-                if (rei >= matrix[ri].second.size()) {
+                if (rei >= matrix[ri].second.size()) { // Caso 3.1
                     while (dei < matrix[di].second.size()) {
                         newValue = - factor * dv;
                         if (abs(newValue) <= epsilon) {
@@ -342,39 +214,9 @@ void LILMatrix::gaussianElimination(vector<double> &b) {
                 }
                 dei--;
             }
-            //cout << endl;
-
-//            double tmp = b[ri] - factor * b[di];
-//            if (abs(tmp) < epsilon) b[ri] = 0;
-//            else b[ri] = tmp;
-
             b[ri] -= factor * b[di];
         }
     }
-
-    /*
-    for (const auto& fila : matrix)
-        if (fila.second.size() >= 400) cout << fila.first << "|" << fila.second.size() << endl;
-    */
-
-    /*
-    matrix[500].second[0].first = 2;
-    for (auto & i : matrix)
-        if (i.first != i.second[0].first)
-            cout << "[" << i.first << " " << i.second[0].first << "]" << endl;
-    */
-
-    //debug_structural_matrix();
-    //debug_abstract_matrix();
-    //debug_ec_system(b);
-
-    /*cout << endl;
-    for (int i = 1997; i < matrix.size(); i++) {
-        for (int j = 0; j < matrix[i].second.size(); j++) {
-            cout << "[" << i << "]" << matrix[i].second[j].first << " ";
-        }
-        cout << b[i] << endl;
-    }*/
 
     for (int eci = (int) matrix.size() - 1; eci >= 0; eci--) {
         double sum = 0;
@@ -427,137 +269,3 @@ void LILMatrix::debug_ec_system(const vector<double>& b) {
 int LILMatrix::getRows() const { return rows; }
 int LILMatrix::getCols() const { return cols; }
 int LILMatrix::nzElems() const { return nz_elems; }
-
-
-
-
-
-
-
-
-
-
-/* LEGACY - gauss
-                int colCoord = matrix[di].second[dei].first;
-                double pv = matrix[di].second[dei].second;
-                rv = getValue(ri, colCoord);
-                double newValue = rv - factor * pv;
-                cout << "[ (f)" << ri << "     (c)" << colCoord << "     (v) " << rv << "     (nv) " << newValue << " ]";
-                cout << " ------------------------- " << di << endl;
-                if (newValue == rv) continue;
-                setValue(ri, colCoord, newValue);
-*/
-
-
-
-/* setValue with INT
-    if (targetValue == 0) {
-        if(actualValue == 0) return;
-
-        auto row = matrix[findRow(targetRow)].second;
-        auto rei = findColumn(targetColumn, row);
-
-        row.erase(row.begin()+rei);
-
-        //nz_elems = countNzElems();
-        nz_elems--;
-        return;
-    }
-
-    int ri = findRow(targetRow);
-
-    if(ri != targetRow) {
-        matrix.insert(matrix.begin() + ri, newMatrix_elem);
-        //nz_elems = countNzElems();
-        nz_elems++;
-        return;
-    }
-
-    auto row = matrix[ri].second;
-    int rei = findColumn(targetColumn, row);
-
-    if (rei != targetColumn) {
-        row.insert(row.begin()+rei, newElement);
-        //nz_elems = countNzElems();
-        nz_elems++;
-        return;
-    }
-
-    row[rei].second = targetValue;*/
-
-
-/* getValue with INT
-    int ri = findRow(targetRow);
-    if (ri != targetRow) return 0;
-    int rei = findColumn(targetColumn, matrix[ri].second);
-    if (rei != targetColumn) return 0;
-
-    return matrix[ri].second[rei].first;*/
-
-/* pageGrade with INT
-    int ri = findRow(targetRow);
-    if (ri != targetRow) return 0;
-    return (double) matrix[ri].second.size();
-    */
-
-
-
-
-
-
-
-
-
-/* getValue with ITERATORS
-    auto m_it = findRow(targetRow);
-    if(m_it == matrix.end() || targetRow != m_it->first) return 0;
-    auto row_it = findColumn(targetColumn, &m_it->second);
-    if(row_it == m_it->second.end() || targetColumn != row_it->first) return 0;
-
-    return row_it->second;
-    */
-
-
-
-/* setValue with ITERATORS
-if (targetValue == 0) {
-    if(actualValue == 0) return;
-
-    auto m_it = findRow(targetRow);
-    auto row_it = findColumn(targetColumn, &m_it->second);
-
-    m_it->second.erase(row_it);
-
-    //nz_elems = countNzElems();
-    nz_elems--;
-    return;
-}
-
-if (actualValue == 0) {
-    auto m_it = findRow(targetRow);
-    if(m_it->first != targetRow) matrix.insert(m_it, newMatrix_elem);
-    else m_it->second.insert(findColumn(targetColumn, &m_it->second), newElement);
-
-    //nz_elems = countNzElems();
-    nz_elems++;
-} else {
-    for(auto & i : matrix) { // sujeto a ver optimización
-        if(i.first != targetRow) continue;
-        for(auto & j : i.second) {
-            if(j.first != targetColumn) continue;
-            j.second = targetValue;
-            return;
-        }
-    }
-}
-*/
-
-/* pageGrade with ITERATORS
-    auto m_it = findRow(targetRow);
-    if (m_it == matrix.end() || targetRow != m_it->first) return 0;
-    return (double) m_it->second.size();
-
-    double res = 0;
-    for (int i = 0; i < cols; i++) res += getValue(targetRow, i);
-    return res;
-    */

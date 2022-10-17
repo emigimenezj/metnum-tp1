@@ -238,26 +238,26 @@ TEST(Matrix_diagonal_multiply, multiplicate_matrix_by_null_diagonal) {
     EXPECT_EQ(matrix.nzElems(), 0);
 }
 TEST(Matrix_identity_substract, substract_full_matrix) {
-    LILMatrix matrix({{1,2},{3,4}});
+    LILMatrix matrix({{0,2},{0,0}});
     matrix.identitySubtractSelf();
-    EXPECT_EQ(matrix.getValue(0,0), 0);
+    EXPECT_EQ(matrix.getValue(0,0), 1);
     EXPECT_EQ(matrix.getValue(0,1), -2);
-    EXPECT_EQ(matrix.getValue(1,0), -3);
-    EXPECT_EQ(matrix.getValue(1,1), -3);
+    EXPECT_EQ(matrix.getValue(1,0), 0);
+    EXPECT_EQ(matrix.getValue(1,1), 1);
     EXPECT_EQ(matrix.getRows(), 2);
     EXPECT_EQ(matrix.getCols(), 2);
     EXPECT_EQ(matrix.nzElems(), 3);
 }
 TEST(Matrix_identity_substract, substract_matrix_with_some_zeros) {
-    LILMatrix matrix({{1,0},{0,4}});
+    LILMatrix matrix({{0,1},{4,0}});
     matrix.identitySubtractSelf();
-    EXPECT_EQ(matrix.getValue(0,0), 0);
-    EXPECT_EQ(matrix.getValue(0,1), 0);
-    EXPECT_EQ(matrix.getValue(1,0), 0);
-    EXPECT_EQ(matrix.getValue(1,1), -3);
+    EXPECT_EQ(matrix.getValue(0,0), 1);
+    EXPECT_EQ(matrix.getValue(0,1), -1);
+    EXPECT_EQ(matrix.getValue(1,0), -4);
+    EXPECT_EQ(matrix.getValue(1,1), 1);
     EXPECT_EQ(matrix.getRows(), 2);
     EXPECT_EQ(matrix.getCols(), 2);
-    EXPECT_EQ(matrix.nzElems(), 1);
+    EXPECT_EQ(matrix.nzElems(), 4);
 }
 TEST(Matrix_identity_substract, substract_null_matrix) {
     LILMatrix matrix({{0,0},{0,0}});
